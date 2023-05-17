@@ -6,9 +6,10 @@
 
 int main() {
     //std::filesystem::current_path().u8string()
-    GVFinder gvfinder = GVFinder("data/J29_B_CE_IonXpress_005.fastq");
+    GVFinder gvfinder = GVFinder("data/J30_B_CE_IonXpress_006.fastq");
     std::cout << gvfinder.get_allele_size() << " " << gvfinder.get_data_size() << "\n";
-    gvfinder.find_alignment();
+    gvfinder.solve();
+    gvfinder.output("");
 /*
   std::vector<std::string> sequences = {
       "CATAAAAGAACGTAGGTCGCCCGTCCGTAACCTGTCGGATCACCGGAAAGGACCCGTAAAGTGATAATGAT",
