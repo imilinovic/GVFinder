@@ -1,5 +1,6 @@
 add_executable(${PROJECT_NAME} 
     main.cpp
+    GVFinder.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

@@ -1,9 +1,15 @@
 #include <iostream>
 #include <vector>
-
+#include <filesystem>
+#include "GVFinder.hpp"
 #include "spoa/spoa.hpp"
 
 int main() {
+    //std::filesystem::current_path().u8string()
+    GVFinder gvfinder = GVFinder("data/J29_B_CE_IonXpress_005.fastq");
+    std::cout << gvfinder.get_allele_size() << " " << gvfinder.get_data_size() << "\n";
+    gvfinder.find_alignment();
+/*
   std::vector<std::string> sequences = {
       "CATAAAAGAACGTAGGTCGCCCGTCCGTAACCTGTCGGATCACCGGAAAGGACCCGTAAAGTGATAATGAT",
       "ATAAAGGCAGTCGCTCTGTAAGCTGTCGATTCACCGGAAAGATGGCGTTACCACGTAAAGTGATAATGATTAT",
@@ -33,6 +39,6 @@ int main() {
   for (const auto& it : msa) {
     std::cerr << it << std::endl;
   }
-
+*/
   return 0;
 }
