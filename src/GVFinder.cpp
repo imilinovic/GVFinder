@@ -78,13 +78,29 @@ int GVFinder::get_max_difference(const std::vector<std::string> &cluster, const 
     return max_difference;
 }
 
+bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference){
+    for(const auto &cluster_sequence : cluster){
+        int difference = 0;
+        for(int i = 0; i < (int)sequence.size(); ++i){
+            if(sequence[i] != cluster_sequence[i]){
+                difference ++;
+                if (difference >= max_cluster_difference){
+                    return false;    
+                }
+            }
+        }
+    }
+    return true;
+}
+
 void GVFinder::cluster_msa(const std::vector<std::string> &msa){
     for(const auto &sequence : msa) {
         bool found_cluster = false;
         for(auto &cluster : clusters) {
-            int max_difference = get_max_difference(cluster, sequence);
+            // int max_difference = get_max_difference(cluster, sequence);
             //std::cout << "Max difference: " << max_difference << "\n";
-            if(max_difference < max_cluster_difference){
+            // if(max_difference < max_cluster_difference){
+            if(belongs_to_cluster(cluster, sequence, max_cluster_difference)){
                 cluster.push_back(sequence);
                 found_cluster = true;
                 break;

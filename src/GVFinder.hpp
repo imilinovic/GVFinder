@@ -26,6 +26,7 @@ public:
     void output(std::string path);
     void solve();
     int get_max_difference(const std::vector<std::string> &cluster, const std::string &sequence);
+    bool belongs_to_cluster(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference);
     std::string get_consensus(const std::vector<std::string> &cluster);
     std::vector<std::string> get_known_results(std::string path="");
 
