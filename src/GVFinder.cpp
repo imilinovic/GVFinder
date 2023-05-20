@@ -6,10 +6,33 @@
 #include <algorithm>
 #include "spoa/spoa.hpp"
 
-GVFinder::GVFinder(std::string data_path) {
+
+GVFinder::GVFinder(std::string data_path, int method) {
     std::vector<std::string> data;
     std::ifstream stream;
     std::unordered_map<int, int> length_cnt;
+    this->method = method;
+    
+
+
+
+    std::string method_name;
+    switch(method){
+        case 1:
+            method_name = "big punishment";
+            break;
+        case 2:
+            method_name = "rough";
+            break;
+        case 3:
+            method_name = "closest cluster";
+            break;
+        default:
+            throw std::invalid_argument("Invalid method argument");
+            break;
+    }
+
+    std::cout << "Method: " << method_name << "\n";
 
     stream.open(data_path);
     std::string line;
@@ -35,15 +58,24 @@ GVFinder::GVFinder(std::string data_path) {
         }
     }
 
-    for(auto allele : data){
-        if((int)allele.size() == most_common_len)
-            sequences.push_back(allele);
+    if(method == 1){
+        for(auto allele : data){
+            if((int)allele.size() == most_common_len){
+                sequences.push_back(allele);
+            }
+        }
+    }else{
+        for(auto allele : data){    
+            if((int)allele.size() <= most_common_len + 5 && (int)allele.size() >= most_common_len - 5){
+                sequences.push_back(allele);
+            }
+        }
     }
 }
 
 void GVFinder::find_alignment() {
     auto alignment_engine = spoa::AlignmentEngine::Create(
-        spoa::AlignmentType::kNW, 0, -1, -100);  // linear gaps match mismatch gap
+        spoa::AlignmentType::kNW, 0, -1, method == 1 ? -100 : -1);  // linear gaps match mismatch gap
     spoa::Graph graph{};
 
     for (const auto& it : sequences) {
@@ -59,7 +91,16 @@ void GVFinder::find_alignment() {
     auto msa = graph.GenerateMultipleSequenceAlignment();
     std::cerr << "Velicina MSA: " << (int)msa.size() << "\n";
 
-    cluster_msa(msa);
+    switch(method){
+        case 1:
+            cluster_msa_1(msa);
+            break;
+        case 2:
+            cluster_msa_2(msa);
+            break;
+        case 3:
+            cluster_msa_3(msa);
+    }
 }
 
 bool GVFinder::compare_by_size(const std::vector<std::string> &X, const std::vector<std::string> &Y){
@@ -93,13 +134,30 @@ bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const
     return true;
 }
 
-void GVFinder::cluster_msa(const std::vector<std::string> &msa){
+double GVFinder::calculate_average_distance(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference){
+    double sum = 0;
+    for(const auto &cluster_sequence : cluster){
+        int difference = 0;
+        for(int i = 0; i < (int)sequence.size(); ++i){
+            if(sequence[i] != cluster_sequence[i]){
+                difference ++;
+                if (difference >= max_cluster_difference){
+                    return -1;    
+                }
+            }
+        }
+        sum += difference;
+    }
+    return sum / cluster.size();
+}
+
+
+
+
+void GVFinder::cluster_msa_1(const std::vector<std::string> &msa){
     for(const auto &sequence : msa) {
         bool found_cluster = false;
         for(auto &cluster : clusters) {
-            // int max_difference = get_max_difference(cluster, sequence);
-            //std::cout << "Max difference: " << max_difference << "\n";
-            // if(max_difference < max_cluster_difference){
             if(belongs_to_cluster(cluster, sequence, max_cluster_difference)){
                 cluster.push_back(sequence);
                 found_cluster = true;
@@ -112,9 +170,59 @@ void GVFinder::cluster_msa(const std::vector<std::string> &msa){
     }
 }
 
+void GVFinder::cluster_msa_2(const std::vector<std::string> &msa){
+    int sequence_index = 0;
+    for(const auto &sequence : msa) {
+        bool found_cluster = false;
+        int cluster_index = 0;
+        for(auto &cluster : clusters) {
+            if(belongs_to_cluster(cluster, sequence, max_cluster_difference)){
+                cluster.push_back(sequence);
+                clusters2[cluster_index].push_back(sequences[sequence_index]);
+                found_cluster = true;
+                break;
+            }
+            cluster_index++;
+        }
+        if(!found_cluster){
+            clusters.push_back({sequence});
+            clusters2.push_back({sequences[sequence_index]});
+        }
+        sequence_index++;
+    }
+    clusters = clusters2;
+}
+
+void GVFinder::cluster_msa_3(const std::vector<std::string> &msa){
+    for(const auto &sequence : msa) {
+        bool found_cluster = false;
+        double min_avg_distance = max_cluster_difference;
+        double current_avg_distance;
+        int min_cluster_index = 0;
+        
+        int cluster_index = 0;
+        for(auto &cluster : clusters) {
+            current_avg_distance = calculate_average_distance(cluster, sequence, max_cluster_difference);
+            if (current_avg_distance != -1){
+                if (current_avg_distance < min_avg_distance){
+                    min_avg_distance = current_avg_distance;
+                    min_cluster_index = cluster_index;
+                    found_cluster = true;
+                }
+            }
+            cluster_index++;
+        }
+        if(!found_cluster){
+            clusters.push_back({sequence});
+        } else {
+            clusters[min_cluster_index].push_back(sequence);
+        }
+    }
+}
+
 std::string GVFinder::get_consensus(const std::vector<std::string> &cluster){
     auto alignment_engine = spoa::AlignmentEngine::Create(
-        spoa::AlignmentType::kNW, 0, -1, -100);  // linear gaps match mismatch gap
+        spoa::AlignmentType::kNW, 0, -1, method == 1 ? -100 : -1);  // linear gaps match mismatch gap
     spoa::Graph graph{};
 
     for (const auto& it : cluster) {

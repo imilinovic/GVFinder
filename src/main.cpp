@@ -6,7 +6,7 @@
 
 int main() {
     //std::filesystem::current_path().u8string()
-    GVFinder gvfinder = GVFinder("data/J30_B_CE_IonXpress_006.fastq");
+    GVFinder gvfinder = GVFinder("data/J30_B_CE_IonXpress_006.fastq", 1);
     std::cout << gvfinder.get_allele_size() << " " << gvfinder.get_data_size() << "\n";
     gvfinder.solve();
     gvfinder.output("");
