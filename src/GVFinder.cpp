@@ -107,24 +107,24 @@ bool GVFinder::compare_by_size(const std::vector<std::string> &X, const std::vec
     return X.size() > Y.size();
 }
 
-int GVFinder::get_max_difference(const std::vector<std::string> &cluster, const std::string &sequence){
-    int max_difference = 0;
-    for(const auto &cluster_sequence : cluster){
-        int difference = 0;
-        for(int i = 0; i < (int)sequence.size(); ++i)
-            if(sequence[i] != cluster_sequence[i])
-                difference ++;
-        max_difference = std::max(max_difference, difference);
-    }
-    return max_difference;
-}
+// int GVFinder::get_max_difference(const std::vector<std::string> &cluster, const std::string &sequence){
+//     int max_difference = 0;
+//     for(const auto &cluster_sequence : cluster){
+//         int difference = 0;
+//         for(int i = 0; i < (int)sequence.size(); ++i)
+//             if(sequence[i] != cluster_sequence[i])
+//                 difference ++;
+//         max_difference = std::max(max_difference, difference);
+//     }
+//     return max_difference;
+// }
 
 bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference){
     for(const auto &cluster_sequence : cluster){
         int difference = 0;
         for(int i = 0; i < (int)sequence.size(); ++i){
             if(sequence[i] != cluster_sequence[i]){
-                difference ++;
+                difference++;
                 if (difference >= max_cluster_difference){
                     return false;    
                 }
@@ -194,6 +194,7 @@ void GVFinder::cluster_msa_2(const std::vector<std::string> &msa){
 }
 
 void GVFinder::cluster_msa_3(const std::vector<std::string> &msa){
+    int sequence_index = 0;
     for(const auto &sequence : msa) {
         bool found_cluster = false;
         double min_avg_distance = max_cluster_difference;
@@ -214,10 +215,14 @@ void GVFinder::cluster_msa_3(const std::vector<std::string> &msa){
         }
         if(!found_cluster){
             clusters.push_back({sequence});
+            clusters2.push_back({sequences[sequence_index]});
         } else {
             clusters[min_cluster_index].push_back(sequence);
+            clusters2[min_cluster_index].push_back(sequences[sequence_index]);
         }
+        sequence_index++;
     }
+    clusters = clusters2;
 }
 
 std::string GVFinder::get_consensus(const std::vector<std::string> &cluster){
