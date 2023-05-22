@@ -10,16 +10,18 @@ protected:
     std::vector<std::vector<std::string> > clusters2;
     std::vector<std::string> results;
     int max_cluster_difference = 12;
+    int max_size_difference = 5;
     int method;
-
 
 public:
     GVFinder(std::string data_path, int method);
 
-
     int get_data_size() { return (int)sequences.size(); }
     int get_allele_size() { return (sequences.size() ? (int)sequences[0].size() : 0); }
-    
+    void set_max_cluster_difference(int max_cluster_difference) { this -> max_cluster_difference = max_cluster_difference; }
+    void set_max_size_difference(int max_size_difference) { this -> max_size_difference = max_size_difference; }
+    const std::vector<std::string> &get_results() { return results; }
+
     static bool compare_by_size(const std::vector<std::string> &X, const std::vector<std::string> &Y);
     static int get_max_difference(const std::string &X, const std::string &Y);
 
