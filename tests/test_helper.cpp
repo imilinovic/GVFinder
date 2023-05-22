@@ -36,7 +36,7 @@ Test_helper::Test_helper() {
 
 int Test_helper::get_number_of_matches(const std::vector<std::string> &results, const std::vector<std::string> &known_results){
     int number_of_matches = 0;
-    for(const auto &known_result : sample29){
+    for(const auto &known_result : known_results){
         for(const auto &result : results){
             if(result.find(known_result) != std::string::npos){
                 number_of_matches ++;
