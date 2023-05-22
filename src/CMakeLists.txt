@@ -1,6 +1,7 @@
 add_executable(${PROJECT_NAME} 
     main.cpp
     GVFinder.cpp
+    ${CMAKE_SOURCE_DIR}/tests/test_helper.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
