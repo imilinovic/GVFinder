@@ -7,11 +7,13 @@
 #include "spoa/spoa.hpp"
 
 
-GVFinder::GVFinder(std::string data_path, int method) {
+GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, int max_cluster_difference) {
     std::vector<std::string> data;
     std::ifstream stream;
     std::unordered_map<int, int> length_cnt;
     this->method = method;
+    this->max_size_difference = max_size_difference;
+    this->max_cluster_difference = max_cluster_difference;
     
     std::string method_name;
     switch(method){
@@ -29,7 +31,7 @@ GVFinder::GVFinder(std::string data_path, int method) {
             break;
     }
 
-    std::cout << "Method: " << method_name << "\n";
+    std::cout << "Method: " << method_name << "\n" << "max size difference = " << max_size_difference << "\n" << "max cluster difference = " << max_cluster_difference << "\n";
 
     stream.open(data_path);
     std::string line;
@@ -82,7 +84,7 @@ void GVFinder::find_alignment() {
 
     auto consensus = graph.GenerateConsensus();
     auto msa = graph.GenerateMultipleSequenceAlignment();
-
+    
     // std::cout << "Msa za big punismhemtn\n" << msa[0] <<"\n" << msa[15] <<"\n" << msa[100] << "\n" << msa[160] << "\n";
 
     switch(method){
@@ -296,6 +298,15 @@ void GVFinder::output(std::string path="") {
     //compare_with_known_results(known_results, results);
     //std::cout << "Usporedba izmedu sebe:\n";
     //compare_with_known_results(results, results);
+}
+
+void GVFinder::check(std::string sequence, std::string name) {
+    for (int i = 0; i < int(results.size()); i++){
+        if (results[i].find(sequence) != std::string::npos){
+            std::cout << "found " << name << " in " << i + 1 << ". cluster" << "\n";
+            return; 
+        }
+    }
 }
 
 void GVFinder::solve() {

@@ -14,7 +14,7 @@ protected:
     int method;
 
 public:
-    GVFinder(std::string data_path, int method);
+    GVFinder(std::string data_path, int method, int max_size_difference, int max_cluster_difference);
 
     int get_data_size() { return (int)sequences.size(); }
     int get_allele_size() { return (sequences.size() ? (int)sequences[0].size() : 0); }
@@ -33,6 +33,7 @@ public:
     void output_to_file(const std::vector<std::string> &results, std::string path);
     void calculate_results();
     void output(std::string path);
+    void check(std::string ssequence, std::string name);
     void solve();
     int get_max_difference(const std::vector<std::string> &cluster, const std::string &sequence);
     bool belongs_to_cluster(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference);
