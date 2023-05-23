@@ -89,7 +89,11 @@ void GVFinder::find_alignment() {
             << consensus << std::endl;
 
     auto msa = graph.GenerateMultipleSequenceAlignment();
+
+
     std::cerr << "Velicina MSA: " << (int)msa.size() << "\n";
+
+    // std::cout << "Msa za big punismhemtn\n" << msa[0] <<"\n" << msa[15] <<"\n" << msa[100] << "\n" << msa[160] << "\n";
 
     switch(method){
         case 1:
@@ -124,6 +128,7 @@ bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const
         int difference = 0;
         for(int i = 0; i < (int)sequence.size(); ++i){
             if(sequence[i] != cluster_sequence[i]){
+            // if(sequence[i] != cluster_sequence[i] && sequence[i] != '-' && cluster_sequence[i] != '-'){
                 difference++;
                 if (difference >= max_cluster_difference){
                     return false;    
@@ -140,6 +145,7 @@ double GVFinder::calculate_average_distance(const std::vector<std::string> &clus
         int difference = 0;
         for(int i = 0; i < (int)sequence.size(); ++i){
             if(sequence[i] != cluster_sequence[i]){
+            // if(sequence[i] != cluster_sequence[i] && sequence[i] != '-' && cluster_sequence[i] != '-'){ 
                 difference ++;
                 if (difference >= max_cluster_difference){
                     return -1;    
@@ -173,6 +179,7 @@ void GVFinder::cluster_msa_1(const std::vector<std::string> &msa){
 void GVFinder::cluster_msa_2(const std::vector<std::string> &msa){
     int sequence_index = 0;
     for(const auto &sequence : msa) {
+        
         bool found_cluster = false;
         int cluster_index = 0;
         for(auto &cluster : clusters) {
