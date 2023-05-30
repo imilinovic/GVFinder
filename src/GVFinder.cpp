@@ -6,7 +6,6 @@
 #include <algorithm>
 #include "spoa/spoa.hpp"
 
-
 GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, int max_cluster_difference) {
     std::vector<std::string> data;
     std::ifstream stream;
@@ -31,7 +30,7 @@ GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, i
             break;
     }
 
-    std::cout << "Method: " << method_name << "\n" << "max size difference = " << max_size_difference << "\n" << "max cluster difference = " << max_cluster_difference << "\n";
+    std::cout << "Method: " << method_name << "\n";
 
     stream.open(data_path);
     std::string line;
@@ -84,8 +83,6 @@ void GVFinder::find_alignment() {
 
     auto consensus = graph.GenerateConsensus();
     auto msa = graph.GenerateMultipleSequenceAlignment();
-    
-    // std::cout << "Msa za big punismhemtn\n" << msa[0] <<"\n" << msa[15] <<"\n" << msa[100] << "\n" << msa[160] << "\n";
 
     switch(method){
         case 1:
@@ -108,7 +105,6 @@ bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const
         int difference = 0;
         for(int i = 0; i < (int)sequence.size(); ++i){
             if(sequence[i] != cluster_sequence[i]){
-            // if(sequence[i] != cluster_sequence[i] && sequence[i] != '-' && cluster_sequence[i] != '-'){
                 difference++;
                 if (difference >= max_cluster_difference){
                     return false;    
@@ -125,7 +121,6 @@ double GVFinder::calculate_average_distance(const std::vector<std::string> &clus
         int difference = 0;
         for(int i = 0; i < (int)sequence.size(); ++i){
             if(sequence[i] != cluster_sequence[i]){
-            // if(sequence[i] != cluster_sequence[i] && sequence[i] != '-' && cluster_sequence[i] != '-'){ 
                 difference ++;
                 if (difference >= max_cluster_difference){
                     return -1;    
@@ -224,7 +219,7 @@ std::string GVFinder::get_consensus(const std::vector<std::string> &cluster){
 
 void GVFinder::calculate_results(){
     std::sort(clusters.begin(), clusters.end(), compare_by_size);
-    while(clusters.back().size() < 10)
+    while(clusters.size() > 4 || clusters.back().size() < 10)
         clusters.pop_back();
 
     for(const auto &cluster : clusters){
@@ -250,9 +245,7 @@ std::vector<std::string> GVFinder::get_known_results(std::string path) {
     stream.open(path);
     std::string line;
     while(std::getline(stream, line)){
-        //if(std::getline(stream, line)){
-            results.push_back(line);
-        //}
+        results.push_back(line);
     }
     stream.close();
     return results;
@@ -274,30 +267,27 @@ void GVFinder::compare_with_known_results(const std::vector<std::string> &known_
     }
 }
 
-void GVFinder::output_to_file(const std::vector<std::string> &results, std::string path) {
+void GVFinder::output_to_file(std::string filename, const std::vector<std::string> &results, std::string path) {
     std::ofstream stream;
 
-    stream.open(path);
+    stream.open(path, std::ios_base::app);
+    stream << filename << "\n";
     for(const auto &result : results) {
         stream << result << "\n";
     }
+    stream << "\n";
     stream.close();
 }
 
-void GVFinder::output(std::string path="") {
-    std::cerr << "Clusters size: " << clusters.size() << "\n";
+void GVFinder::output(std::string filename, std::string path) {
     for(int i = 0; i < (int)results.size(); ++i){
-        std::cout << "Size: " << clusters[i].size() << "\n";
-        std::cout << "Consensus: " << results[i] << "\n";
+        std::cout << "Cluster size: " << clusters[i].size() << "\n";
+        std::cout << "Cluster consensus: " << results[i] << "\n";
+        std::cout << "\n";
     }
 
     if(path != "")
-        output_to_file(results, path);
-
-    //std::vector<std::string> known_results = get_known_results(path);
-    //compare_with_known_results(known_results, results);
-    //std::cout << "Usporedba izmedu sebe:\n";
-    //compare_with_known_results(results, results);
+        output_to_file(filename, results, path);
 }
 
 void GVFinder::check(std::string sequence, std::string name) {

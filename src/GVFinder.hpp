@@ -30,9 +30,9 @@ public:
     void cluster_msa_2(const std::vector<std::string> &msa);
     void cluster_msa_3(const std::vector<std::string> &msa);
     void compare_with_known_results(const std::vector<std::string> &known_results, const std::vector<std::string> &results);
-    void output_to_file(const std::vector<std::string> &results, std::string path);
+    void output_to_file(std::string filename, const std::vector<std::string> &results, std::string path);
     void calculate_results();
-    void output(std::string path);
+    void output(std::string filename, std::string path="");
     void check(std::string ssequence, std::string name);
     void solve();
     int get_max_difference(const std::vector<std::string> &cluster, const std::string &sequence);
@@ -40,5 +40,4 @@ public:
     double calculate_average_distance(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference);
     std::string get_consensus(const std::vector<std::string> &cluster);
     std::vector<std::string> get_known_results(std::string path="");
-
 };
