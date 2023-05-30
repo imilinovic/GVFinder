@@ -1,13 +1,30 @@
+import os
+import subprocess
+
 from Levenshtein import distance as levenshtein_distance
 
+EXAMPLES_DIR = 'data/'
+
 def main():
-    with open("jelen_summary.txt", 'r') as f:
+    try:
+        os.remove("tmp.txt")
+    except OSError:
+        pass
+
+    for dir in os.listdir(EXAMPLES_DIR):
+        if not dir.startswith('J'):
+            continue
+        
+        filename = EXAMPLES_DIR + dir
+        print(filename)
+        subprocess.run(["build/src/GVFinder"], input=bytes(' '.join([filename, "tmp.txt"]), 'utf-8'))
+        
+    with open("tmp.txt", 'r') as f:
         data = f.readlines()
 
     occurences = {}
     most_common = []
 
-    filename = ""
     for line in data:
         striped_line = line.strip()
         if striped_line.startswith('data'):
