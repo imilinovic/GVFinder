@@ -9,7 +9,6 @@ add_executable( test_big_punishment
 
 target_link_libraries( test_big_punishment
   GTest::gtest_main
-  spdlog::spdlog $<$<BOOL:${MINGW}>:ws2_32>
   spoa::spoa
 )
 
@@ -22,7 +21,6 @@ add_executable( test_rough_method
 
 target_link_libraries( test_rough_method
   GTest::gtest_main
-  spdlog::spdlog $<$<BOOL:${MINGW}>:ws2_32>
   spoa::spoa
 )
 
@@ -35,7 +33,6 @@ add_executable( test_closest_clusters
 
 target_link_libraries( test_closest_clusters
   GTest::gtest_main
-  spdlog::spdlog $<$<BOOL:${MINGW}>:ws2_32>
   spoa::spoa
 )
 

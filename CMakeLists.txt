@@ -24,12 +24,7 @@ if (NOT TARGET spoa)
   add_subdirectory(spoa EXCLUDE_FROM_ALL)
 endif ()
 
-add_subdirectory(spdlog)
 add_subdirectory(src)
 add_subdirectory(tests)
 
-if(NOT TARGET spdlog)
-    # Stand-alone build
-    find_package(spdlog REQUIRED)
-endif()
 
