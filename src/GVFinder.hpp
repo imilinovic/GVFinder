@@ -9,8 +9,8 @@ protected:
     std::vector<std::vector<std::string> > clusters;
     std::vector<std::vector<std::string> > clusters2;
     std::vector<std::string> results;
-    int max_cluster_difference = 12;
-    int max_size_difference = 5;
+    int max_cluster_difference;
+    int max_size_difference;
     int method;
 
 public:

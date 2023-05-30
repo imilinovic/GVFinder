@@ -48,9 +48,7 @@ int Test_helper::get_number_of_matches(const std::vector<std::string> &results, 
     
     int number_of_matches = 0;
     for(const auto &known_result : known_results){
-        // for(const auto &result : results){
-        std::vector<std::string> top_results{&results[0], &results[1]};
-        for(const auto &result : top_results){
+        for(const auto &result : results){
             if(result.find(known_result) != std::string::npos){
                 number_of_matches ++;
                 break;
@@ -63,7 +61,6 @@ int Test_helper::get_number_of_matches(const std::vector<std::string> &results, 
 Test_result Test_helper::solve(std::string path_to_file, int method, int sample_id, bool print,
                                 int max_cluster_difference, int max_size_difference){
     GVFinder gvfinder = GVFinder(path_to_file, method, max_size_difference, max_cluster_difference);
-
     gvfinder.solve();
     const std::vector<std::string> results = gvfinder.get_results();
     if(sample_id == 29)
@@ -77,7 +74,6 @@ Test_result Test_helper::solve(std::string path_to_file, int method, int sample_
 
 bool Test_helper::found_sequence(std::string path_to_file, std::string sequence, int method, int max_cluster_difference, int max_size_difference){
     GVFinder gvfinder = GVFinder(path_to_file, method, max_size_difference, max_cluster_difference);
-
     gvfinder.solve();
     const std::vector<std::string> results = gvfinder.get_results();
     int i = 1;
