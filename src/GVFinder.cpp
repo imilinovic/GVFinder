@@ -6,6 +6,10 @@
 #include <algorithm>
 #include "spoa/spoa.hpp"
 
+// Klasa GVFinder glavna je klasa algoritma, u konstruktoru joj predajemo put (iz root-a) do datoteke s 
+// očitanjima, metodu iz {1, 2, 3}, maksimalnu toleranciju za razliku u duljini očitanja (primjenjuje se
+// samo za metode 2 i 3) te maksimalnu udaljenost sekvenci kod klasteriranja
+
 GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, int max_cluster_difference) {
     std::vector<std::string> data;
     std::ifstream stream;
@@ -32,6 +36,7 @@ GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, i
 
     std::cout << "Method: " << method_name << "\n";
 
+// spremamo duljine očitanja u datoteci u rječnik
     stream.open(data_path);
     std::string line;
     while(std::getline(stream, line)){
@@ -48,6 +53,7 @@ GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, i
     }
     stream.close();
 
+// pronalazimo najčešću duljinu očitanja
     int most_common_len = -1, max_len_cnt = 0;
     for(auto len : length_cnt){
         if(len.second > max_len_cnt){
@@ -56,6 +62,8 @@ GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, i
         }
     }
 
+// ako koristimo prvu metodu, koristit ćemo samo očitanja najčešće duljine, a
+// inače koristimo očitanja duljine [najčešća - max_size_difference, najčešća + max_size_difference]
     if(method == 1){
         for(auto allele : data){
             if((int)allele.size() == most_common_len){
@@ -71,10 +79,12 @@ GVFinder::GVFinder(std::string data_path, int method, int max_size_difference, i
     }
 }
 
+// ova funkcija pronalazi višestruko poravnanje odabranih sekvenci te generira klastere
 void GVFinder::find_alignment() {
     auto alignment_engine = spoa::AlignmentEngine::Create(
-        spoa::AlignmentType::kNW, 0, -1, method == 1 ? -100 : -1);  // match mismatch gap
+        spoa::AlignmentType::kNW, 0, -1, method == 1 ? -100 : -1);  // parametri korišteni za poravnanje su redom match mismatch, gap
     spoa::Graph graph{};
+    // ako koristimo metodu 1, onda se umetanje kažnjava dodatno kako bi sva poravnanja bila jednake(najčešće) duljine
 
     for (const auto& it : sequences) {
         auto alignment = alignment_engine->Align(it, graph);
@@ -84,6 +94,7 @@ void GVFinder::find_alignment() {
     auto consensus = graph.GenerateConsensus();
     auto msa = graph.GenerateMultipleSequenceAlignment();
 
+// ovisno o metodu pozivamo funkciju za klasteranje
     switch(method){
         case 1:
             cluster_msa_1(msa);
@@ -96,10 +107,13 @@ void GVFinder::find_alignment() {
     }
 }
 
+// funkcija uspoređuje vektore stringova po veličinama 
 bool GVFinder::compare_by_size(const std::vector<std::string> &X, const std::vector<std::string> &Y){
     return X.size() > Y.size();
 }
 
+// funkcija vraća true ako je string sequence od svakog stringa u clusteru udaljen manje od max_cluster_difference
+// udaljenost se računa kao broj pozicija s različitim znakovima
 bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference){
     for(const auto &cluster_sequence : cluster){
         int difference = 0;
@@ -115,6 +129,8 @@ bool GVFinder::belongs_to_cluster(const std::vector<std::string> &cluster, const
     return true;
 }
 
+//funkcija se koristi u trećoj metodi i vraća prosječnu udaljenost sekvence od svih sekvenci u klasteru,
+// te vraća -1 ako sekvenca ne pripada klasteru (udaljena je od neke sekvence za max_cluster_difference ili više)
 double GVFinder::calculate_average_distance(const std::vector<std::string> &cluster, const std::string &sequence, const int &max_cluster_difference){
     double sum = 0;
     for(const auto &cluster_sequence : cluster){
@@ -132,6 +148,8 @@ double GVFinder::calculate_average_distance(const std::vector<std::string> &clus
     return sum / cluster.size();
 }
 
+// metoda dodaje sekvencu u prvi klaster kojemu sekvenca pripada ili stvara novi klaster ako sekvenca ne pripada niti jednom
+// postojećem klasteru
 void GVFinder::cluster_msa_1(const std::vector<std::string> &msa){
     for(const auto &sequence : msa) {
         bool found_cluster = false;
@@ -148,6 +166,13 @@ void GVFinder::cluster_msa_1(const std::vector<std::string> &msa){
     }
 }
 
+// budući da metoda 2 radi gradi višestruko poravnanje od sekvenci različitih duljina, ta će poravnanja
+// sadržavati umetanja i brisanja. Kako bi iz nastalih klastera mogli generirati konsenzusnu sekvencu 
+// bez umetanja i brisanja, ova metoda gradi dvije skupine klastera - u jednoj su klasteri s očitanjima iz
+// višestrukog poravnanja (sadrže umetanja i brisanja) i njih koristimo za klasteriranje, a u drugoj su 
+// originalna očitanja iz kojih su nastale odgovarajuće sekvence iz prve skupine. Drugu skupinu koristimo 
+// za generiranje konsenzusa klastera. ostatak algoritma isti je kao kod prvog, sekvenca se dodaje u
+// prvi klaster kojemu pripada ili se stvara novi klaster
 void GVFinder::cluster_msa_2(const std::vector<std::string> &msa){
     int sequence_index = 0;
     for(const auto &sequence : msa) {
@@ -172,6 +197,11 @@ void GVFinder::cluster_msa_2(const std::vector<std::string> &msa){
     clusters = clusters2;
 }
 
+// treća metoda isto kao i druga koristi očitanja različitih duljina pa su joj potrebna dva skupa klastera
+// ono u čemu se treća metoda razlikuje od druge je to što ne dodaje sekvencu u prvi klaster kojemu pripada, 
+// ju dodaje u klaster čije su sekvence u prosjeku najbliže toj sekvenci (ako mu sekvenca uopće pripada)
+// za računanje prosječne udaljenosti koristi se funkcija calculate_average_distance
+// ako ne pripada niti jednom klasteru stvara se novi
 void GVFinder::cluster_msa_3(const std::vector<std::string> &msa){
     int sequence_index = 0;
     for(const auto &sequence : msa) {
@@ -204,6 +234,8 @@ void GVFinder::cluster_msa_3(const std::vector<std::string> &msa){
     clusters = clusters2;
 }
 
+// funkcija prima vektor stringova (klaster) i generira višestruko poravnanje kako bi iz njega
+// generirao konsenzus koji će biti predstavnik tog klastera
 std::string GVFinder::get_consensus(const std::vector<std::string> &cluster){
     auto alignment_engine = spoa::AlignmentEngine::Create(
         spoa::AlignmentType::kNW, 0, -1, method == 1 ? -100 : -1);  // match mismatch gap
@@ -217,6 +249,8 @@ std::string GVFinder::get_consensus(const std::vector<std::string> &cluster){
     return graph.GenerateConsensus();
 }
 
+// funkcija uklanja klastere koji sadrže 10 ili manje sekvenci te od preostalih bira 
+// četiri najveća i sprema ih u result
 void GVFinder::calculate_results(){
     std::sort(clusters.begin(), clusters.end(), compare_by_size);
     while(clusters.size() > 4 || clusters.back().size() < 10)
@@ -227,6 +261,7 @@ void GVFinder::calculate_results(){
     }
 }
 
+// funkcija na kraju nije iskorištena
 int GVFinder::get_max_difference(const std::string &X, const std::string &Y){
     if(X.size() != Y.size())
         return -1;
@@ -267,6 +302,7 @@ void GVFinder::compare_with_known_results(const std::vector<std::string> &known_
     }
 }
 
+// funkcija zapisuje rezultate u datoteku
 void GVFinder::output_to_file(std::string filename, const std::vector<std::string> &results, std::string path) {
     std::ofstream stream;
 
@@ -279,6 +315,7 @@ void GVFinder::output_to_file(std::string filename, const std::vector<std::strin
     stream.close();
 }
 
+// funkcija ispisuje rezultate na standardni izlaz
 void GVFinder::output(std::string filename, std::string path) {
     for(int i = 0; i < (int)results.size(); ++i){
         std::cout << "Cluster size: " << clusters[i].size() << "\n";
