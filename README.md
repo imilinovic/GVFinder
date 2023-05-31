@@ -28,4 +28,7 @@ Variants in the output file are sorted by cluster size (descending). The variant
 
 ## Summary generation
 
+To generate a summary you have to install python-Levenshtein library by running
+> pip install python-Levenshtein
+
 Summaries were generated with *run_and_parse_all.py*. Run the script without any arguments. By default the script looks for all files in *data/* directory starting with the letter J. It generates files *summary_analizator.txt* and *summary_levenshtein.txt*.

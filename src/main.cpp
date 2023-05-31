@@ -13,7 +13,7 @@ int main() {
     std::cout << "Unesite datoteku za ispis rezultata: ";
     std::cin >> output_file;
 
-    GVFinder gvfinder(filename, 1, 3, 0); 
+    GVFinder gvfinder(filename, 1, 0, 3); 
     gvfinder.solve();
     gvfinder.output(filename, output_file);
 }
